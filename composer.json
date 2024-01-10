@@ -1,0 +1,21 @@
+{
+    "name": "cclilshy/p-ripple-pdo-proxy",
+    "autoload": {
+        "psr-4": {
+            "Cclilshy\\PRipplePdoProxy\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "cclilshy",
+            "email": "jingnigg@gmail.com"
+        }
+    ],
+    "require": {
+        "cclilshy/p-ripple": "dev-main",
+        "ext-pdo": "*"
+    },
+    "prefer-stable": true,
+    "minimum-stability": "dev",
+    "version": "dev-main"
+}
