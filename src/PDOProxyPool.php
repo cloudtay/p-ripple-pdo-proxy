@@ -40,7 +40,7 @@
 namespace Cclilshy\PRipplePdoProxy;
 
 use PRipple;
-use Support\Extends\Laravel\Laravel;
+use Support\Laravel\Laravel;
 use Worker\Worker;
 
 class PDOProxyPool extends Worker
