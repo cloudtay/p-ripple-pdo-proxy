@@ -39,6 +39,8 @@
 
 namespace Cclilshy\PRipplePdoProxy;
 
+use Core\Output;
+use Exception;
 use PDO;
 use PDOException;
 use Protocol\TCPProtocol;
@@ -72,10 +74,20 @@ class PDOProxy extends Worker
     public function initialize(): void
     {
         parent::initialize();
-        $this->connect();
+        try {
+            $this->connect();
+        } catch (Exception $exception) {
+            Output::printException($exception);
+            exit(0);
+        }
         loop(function () {
             if (!$this->pdo->query('SELECT 1')) {
-                $this->connect();
+                try {
+                    $this->connect();
+                } catch (Exception $exception) {
+                    Output::printException($exception);
+                    exit(0);
+                }
             }
             return true;
         }, 30);
@@ -84,11 +96,19 @@ class PDOProxy extends Worker
     /**
      * Connect native PDO
      * @return $this
+     * @throws Exception
      */
     public function connect(): PDOProxy
     {
+        $driver    = $this->config['driver'];
+        $dsn       = match ($driver) {
+            'mysql' => "mysql:host={$this->config['host']};port={$this->config['port']};dbname={$this->config['database']}",
+            'pgsql' => "pgsql:host={$this->config['host']};port={$this->config['port']};dbname={$this->config['database']}",
+            'sqlite' => "sqlite:{$this->config['url']}",
+            default => throw new Exception("Unsupported driver: $driver"),
+        };
         $this->pdo = new PDO(
-            "{$this->config['driver']}:host={$this->config['host']};port={$this->config['port']};dbname={$this->config['database']}",
+            $dsn,
             $this->config['username'],
             $this->config['password'],
             $this->config['options']
@@ -142,7 +162,11 @@ class PDOProxy extends Worker
             return false;
         } catch (PDOException $exception) {
             if ($exception->getCode() === 2006) {
-                $this->connect();
+                try {
+                    $this->connect();
+                } catch (Exception $exception) {
+                    Output::printException($exception);
+                }
                 return $this->prepare($query, $bindings, $bindParams);
             } else {
                 throw $exception;
@@ -194,14 +218,11 @@ class PDOProxy extends Worker
     public function forking(): void
     {
         parent::forking();
-        $this->connect();
-    }
-
-    /**
-     * @return void
-     */
-    public function forkAfter(): void
-    {
-        $this->connect();
+        try {
+            $this->connect();
+        } catch (Exception $exception) {
+            Output::printException($exception);
+            exit(0);
+        }
     }
 }
